@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Virtual Environment
 .venv/
 venv/
@@ -5,4 +6,13 @@ env/
 
 # Python cache
 __pycache__/
+=======
+# Virtual Environment
+.venv/
+venv/
+env/
+
+# Python cache
+__pycache__/
+>>>>>>> 74ff537 (feat: add .gitignore to LAB01 and add LAB02)
 *.pyc
