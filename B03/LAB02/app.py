@@ -1,91 +1,103 @@
 import logging
+import uuid
 from flask import Flask, jsonify, request
 from werkzeug.exceptions import HTTPException
 
 app = Flask(__name__)
 logging.basicConfig(level=logging.ERROR)
 
+# URL gốc dùng để định danh lỗi
+ERROR_BASE = "https://api.example.com/probs"
 
-# 1. Định nghĩa exception tùy chỉnh theo chuẩn RFC 7807
-class ProblemError(Exception):
-    def __init__(self, status=400, title=None, detail=None, type_=None, instance=None):
-        super().__init__(detail)
+
+# ==========================================
+# 1. errors.py
+# ==========================================
+class ApiProblem(Exception):
+    def __init__(self, status, title, detail=None, type_path=None, **extra):
         self.status = status
-        self.title = title or "Bad Request"
+        self.title = title
         self.detail = detail
-        self.type_ = type_ or "about:blank"
-        self.instance = instance
+        self.type = f"{ERROR_BASE}/{type_path}" if type_path else "about:blank"
+        self.extra = extra
 
 
-# Hàm trợ giúp tạo response application/problem+json
-def make_problem_response(status, title, detail, type_="about:blank", instance=None):
-    payload = {
-        "type": type_,
+def _problem(status, title, detail=None, type_path=None, **extra):
+    body = {
+        "type": f"{ERROR_BASE}/{type_path}" if type_path else "about:blank",
         "title": title,
         "status": status,
-        "detail": detail,
-        "instance": instance or request.path,
+        "instance": request.path,
+        "trace_id": str(uuid.uuid4()),
     }
-    response = jsonify(payload)
-    response.status_code = status
-    response.content_type = "application/problem+json"
-    return response
+    if detail:
+        body["detail"] = detail
+    body.update(extra)
+
+    resp = jsonify(body)
+    resp.status_code = status
+    resp.headers["Content-Type"] = "application/problem+json"
+    return resp
 
 
-# 2. Handler cho custom ProblemError
-@app.errorhandler(ProblemError)
-def handle_problem_error(error):
-    return make_problem_response(
+# ==========================================
+# 2. ĐĂNG KÝ ERROR HANDLERS
+# ==========================================
+# Handler cho ApiProblem tùy chỉnh
+@app.errorhandler(ApiProblem)
+def handle_api_problem(error):
+    # Truyền trực tiếp các thuộc tính đã gán trong ApiProblem
+    return _problem(
         status=error.status,
         title=error.title,
         detail=error.detail,
-        type_=error.type_,
-        instance=error.instance,
+        type_path=None,  # Đã được định dạng sẵn trong error.type
+        **{"type": error.type, **error.extra},
     )
 
 
-# 3. Fallback handler cho các HTTPException chuẩn của Werkzeug/Flask (ví dụ: 404, 405, 400)
+# Handler fallback cho HTTPException (404, 405,...) của Flask/Werkzeug
 @app.errorhandler(HTTPException)
 def handle_http_exception(error):
-    return make_problem_response(
+    return _problem(
         status=error.code,
         title=error.name,
         detail=error.description,
-        type_="about:blank",
+        type_path=None,
     )
 
 
-# 4. Handler cho các exception chưa được bắt (500 Internal Server Error)
-# Log chi tiết server-side, không lộ stack trace ra client
+# Handler cho các Exception chưa bắt (500 Internal Server Error)
 @app.errorhandler(Exception)
 def handle_unexpected_exception(error):
-    app.logger.exception("Đã xảy ra lỗi không xác định: %s", error)
-    return make_problem_response(
+    # Log chi tiết phía server-side kèm stack trace
+    app.logger.exception("Internal Server Error: %s", error)
+
+    # Trả về message trung tính, không lộ thông tin code
+    return _problem(
         status=500,
         title="Internal Server Error",
         detail="Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau.",
-        type_="about:blank",
+        type_path="internal-server-error",
     )
 
 
-# --- Endpoint kiểm thử ---
-@app.route("/resources/<int:id>", methods=["GET"])
-def get_resource(id):
-    # Giả lập không tìm thấy tài nguyên
-    if id != 1:
-        raise ProblemError(
+# ==========================================
+# 3. DÙNG TRONG ROUTE (Endpoint kiểm thử)
+# ==========================================
+@app.get("/users/<int:id>")
+def get_user(id):
+    # Giả lập tìm kiếm user trong database
+    # Ví dụ chỉ có user id=42 tồn tại
+    if id != 42:
+        raise ApiProblem(
             status=404,
-            title="Resource Not Found",
-            detail=f"Tài nguyên với ID {id} không tồn tại.",
-            type_="https://example.com/probs/not-found",
+            title="User not found",
+            type_path="user-not-found",
+            resource_id=id,
         )
-    return jsonify({"id": 1, "name": "Mẫu tài nguyên"})
 
-
-@app.route("/trigger-500", methods=["GET"])
-def trigger_500():
-    # Giả lập lỗi code nội bộ
-    return 1 / 0
+    return jsonify({"id": 42, "name": "Nguyen Van A"})
 
 
 if __name__ == "__main__":
