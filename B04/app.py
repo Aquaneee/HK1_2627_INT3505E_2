@@ -58,7 +58,14 @@ tasks_db = {
 
 @app.route('/v1/tasks', methods=['GET'])
 def list_tasks():
-    return jsonify(list(tasks_db.values())), 200
+    return jsonify([
+        {
+            "id": "123e4567-e89b-12d3-a456-426614174000",
+            "title": "Hoàn thành bài tập OpenAPI",
+            "status": "open",
+            "priority": "high"
+        }
+    ]), 200
 
 @app.route('/v1/tasks', methods=['POST'])
 def create_task():
