@@ -1,0 +1,246 @@
+openapi: 3.0.3
+info:
+  title: Tasks API
+  version: 2026-10-08
+  description: API quản lý công việc nội bộ, hỗ trợ theo dõi tiến độ và giao nhiệm vụ.
+  contact:
+    name: Backend API Team
+    email: api-core@example.com
+servers:
+  - url: https://api.example.com/v1
+    description: Production Server (HTTPS)
+  - url: https://localhost:5000/v1
+    description: Local Development Server
+
+tags:
+  - name: tasks
+    description: Các endpoint quản lý và xử lý công việc
+
+security:
+  - bearerAuth: []
+
+paths:
+  /tasks:
+    get:
+      summary: Lấy danh sách công việc
+      description: Trả về danh sách tasks, mặc định 10 bản ghi, tối đa 100 bản ghi, sắp xếp theo thời gian tạo mới nhất.
+      operationId: listTasks
+      tags:
+        - tasks
+      parameters:
+        - name: limit
+          in: query
+          description: Số lượng bản ghi cần lấy, tối đa 100 items.
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+            example: 10
+        - name: status
+          in: query
+          description: Lọc tác vụ theo trạng thái hiện tại.
+          required: false
+          schema:
+            type: string
+            enum: [open, in_progress, done]
+            example: open
+      responses:
+        '200':
+          description: Lấy danh sách tasks thành công
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Task'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    post:
+      summary: Tạo mới một task
+      description: Tạo mới một công việc và gán trạng thái ban đầu là open.
+      operationId: createTask
+      tags:
+        - tasks
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTaskInput'
+      responses:
+        '201':
+          description: Tạo task thành công
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /tasks/{taskId}:
+    parameters:
+      - name: taskId
+        in: path
+        required: true
+        description: Định danh duy nhất dạng UUID của task.
+        schema:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+
+    get:
+      summary: Lấy thông tin chi tiết một task
+      description: Truy vấn đầy đủ thông tin chi tiết của một nhiệm vụ theo taskId.
+      operationId: getTaskById
+      tags:
+        - tasks
+      responses:
+        '200':
+          description: Chi tiết task
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    patch:
+      summary: Cập nhật một phần task
+      description: Cập nhật linh hoạt các trường title, status hoặc priority của task.
+      operationId: patchTask
+      tags:
+        - tasks
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTaskInput'
+      responses:
+        '200':
+          description: Cập nhật thành công
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+    delete:
+      summary: Xóa một task
+      description: Xóa vĩnh viễn công việc khỏi hệ thống theo taskId.
+      operationId: deleteTask
+      tags:
+        - tasks
+      responses:
+        '204':
+          description: Xóa thành công (No Content)
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Truyền token dạng Bearer JWT vào header Authorization.
+
+  schemas:
+    Task:
+      type: object
+      required:
+        - id
+        - title
+        - status
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        title:
+          type: string
+          minLength: 1
+          maxLength: 255
+          example: "Hoàn thành bài tập OpenAPI"
+        status:
+          type: string
+          enum: [open, in_progress, done]
+          example: "open"
+        priority:
+          type: string
+          enum: [low, normal, high]
+          default: "normal"
+          example: "high"
+        dueDate:
+          type: string
+          format: date
+          example: "2026-10-08"
+        assigneeId:
+          type: string
+          example: "usr_9988"
+
+    CreateTaskInput:
+      type: object
+      required:
+        - title
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 255
+          example: "Họp nhóm API design"
+        priority:
+          type: string
+          enum: [low, normal, high]
+          default: "normal"
+          example: "normal"
+        dueDate:
+          type: string
+          format: date
+          example: "2026-10-08"
+        assigneeId:
+          type: string
+          example: "usr_9988"
+
+    UpdateTaskInput:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 255
+          example: "Cập nhật tài liệu API"
+        status:
+          type: string
+          enum: [open, in_progress, done]
+          example: "in_progress"
+        priority:
+          type: string
+          enum: [low, normal, high]
+          example: "high"
+
+  responses:
+    BadRequest:
+      description: Yêu cầu không hợp lệ
+    Unauthorized:
+      description: Chưa xác thực hoặc Token không hợp lệ
+    NotFound:
+      description: Không tìm thấy tài nguyên
+    ValidationError:
+      description: Dữ liệu gửi lên không đúng định dạng schema
