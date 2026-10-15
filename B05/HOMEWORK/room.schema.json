@@ -1,0 +1,57 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://example.com/schemas/room.schema.json",
+    "title": "Room",
+    "description": "JSON Schema định nghĩa thực thể Phòng nghỉ (Room)",
+    "type": "object",
+    "required": [
+      "room_id",
+      "hotel_id",
+      "room_number",
+      "room_type",
+      "price_per_night",
+      "capacity",
+      "status"
+    ],
+    "properties": {
+      "room_id": {
+        "type": "integer",
+        "minimum": 1,
+        "description": "Mã định danh duy nhất của phòng"
+      },
+      "hotel_id": {
+        "type": "integer",
+        "minimum": 1,
+        "description": "Khóa ngoại tham chiếu đến khách sạn chứa phòng này"
+      },
+      "room_number": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 20,
+        "description": "Số phòng hoặc mã phòng (ví dụ: 101, P302)"
+      },
+      "room_type": {
+        "type": "string",
+        "enum": ["Standard", "Deluxe", "Suite", "Family", "Presidential"],
+        "description": "Loại phòng"
+      },
+      "price_per_night": {
+        "type": "number",
+        "minimum": 0.0,
+        "description": "Giá thuê mỗi đêm"
+      },
+      "capacity": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 15,
+        "description": "Sức chứa tối đa số người"
+      },
+      "status": {
+        "type": "string",
+        "enum": ["AVAILABLE", "OCCUPIED", "MAINTENANCE"],
+        "default": "AVAILABLE",
+        "description": "Trạng thái sẵn sàng của phòng"
+      }
+    },
+    "additionalProperties": false
+  }

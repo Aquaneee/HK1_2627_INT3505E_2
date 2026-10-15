@@ -1,0 +1,76 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://example.com/schemas/booking.schema.json",
+    "title": "Booking",
+    "description": "JSON Schema định nghĩa thực thể Đơn đặt phòng (Booking)",
+    "type": "object",
+    "required": [
+      "booking_id",
+      "user_id",
+      "booking_date",
+      "check_in_date",
+      "check_out_date",
+      "total_price",
+      "status",
+      "booking_items"
+    ],
+    "properties": {
+      "booking_id": {
+        "type": "integer",
+        "minimum": 1,
+        "description": "Mã đơn đặt phòng"
+      },
+      "user_id": {
+        "type": "integer",
+        "minimum": 1,
+        "description": "Khóa ngoại tham chiếu người đặt phòng"
+      },
+      "booking_date": {
+        "type": "string",
+        "format": "date-time",
+        "description": "Thời gian tạo đơn đặt phòng"
+      },
+      "check_in_date": {
+        "type": "string",
+        "format": "date",
+        "description": "Ngày nhận phòng (YYYY-MM-DD)"
+      },
+      "check_out_date": {
+        "type": "string",
+        "format": "date",
+        "description": "Ngày trả phòng (YYYY-MM-DD)"
+      },
+      "total_price": {
+        "type": "number",
+        "minimum": 0.0,
+        "description": "Tổng tiền thanh toán của đơn"
+      },
+      "status": {
+        "type": "string",
+        "enum": ["PENDING", "CONFIRMED", "CANCELLED", "COMPLETED"],
+        "default": "PENDING",
+        "description": "Trạng thái tiến trình của đơn đặt phòng"
+      },
+      "booking_items": {
+        "type": "array",
+        "minItems": 1,
+        "description": "Danh sách các phòng nằm trong đơn đặt",
+        "items": {
+          "type": "object",
+          "required": ["room_id", "price"],
+          "properties": {
+            "room_id": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "price": {
+              "type": "number",
+              "minimum": 0.0
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    "additionalProperties": false
+  }

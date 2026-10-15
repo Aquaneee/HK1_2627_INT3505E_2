@@ -1,0 +1,24 @@
+# Môi trường ảo (virtualenv)
+venv/
+.venv/
+env/
+ENV/
+
+# Python cache & bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Cơ sở dữ liệu cục bộ & tệp tạm
+*.db
+*.sqlite3
+*.log
+
+# Cấu hình IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Biến môi trường
+.env

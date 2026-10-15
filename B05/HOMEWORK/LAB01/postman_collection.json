@@ -1,0 +1,105 @@
+{
+    "info": {
+      "name": "Bookstore API - Lab 2",
+      "description": "Collection test CRUD, Offset/Cursor Pagination, Filter và Sort cho Lab 2",
+      "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+      {
+        "name": "1. POST Create Book",
+        "request": {
+          "method": "POST",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"title\": \"Giao trinh Flask Web Framework\",\n  \"isbn\": \"978-604-012345\",\n  \"price_vnd\": 180000,\n  \"stock\": 50\n}"
+          },
+          "url": {
+            "raw": "http://localhost:5000/api/v1/books",
+            "protocol": "http",
+            "host": ["localhost"],
+            "port": "5000",
+            "path": ["api", "v1", "books"]
+          }
+        }
+      },
+      {
+        "name": "2. GET Books - Offset Pagination",
+        "request": {
+          "method": "GET",
+          "header": [],
+          "url": {
+            "raw": "http://localhost:5000/api/v1/books?strategy=offset&page=1&limit=5",
+            "protocol": "http",
+            "host": ["localhost"],
+            "port": "5000",
+            "path": ["api", "v1", "books"],
+            "query": [
+              { "key": "strategy", "value": "offset" },
+              { "key": "page", "value": "1" },
+              { "key": "limit", "value": "5" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "3. GET Books - Cursor Pagination",
+        "request": {
+          "method": "GET",
+          "header": [],
+          "url": {
+            "raw": "http://localhost:5000/api/v1/books?strategy=cursor&limit=3",
+            "protocol": "http",
+            "host": ["localhost"],
+            "port": "5000",
+            "path": ["api", "v1", "books"],
+            "query": [
+              { "key": "strategy", "value": "cursor" },
+              { "key": "limit", "value": "3" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "4. GET Books - Multi-key Sort",
+        "request": {
+          "method": "GET",
+          "header": [],
+          "url": {
+            "raw": "http://localhost:5000/api/v1/books?strategy=offset&sort=price_vnd:desc,id:asc",
+            "protocol": "http",
+            "host": ["localhost"],
+            "port": "5000",
+            "path": ["api", "v1", "books"],
+            "query": [
+              { "key": "strategy", "value": "offset" },
+              { "key": "sort", "value": "price_vnd:desc,id:asc" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "5. GET Books - Filter Genre",
+        "request": {
+          "method": "GET",
+          "header": [],
+          "url": {
+            "raw": "http://localhost:5000/api/v1/books?strategy=offset&genre=science",
+            "protocol": "http",
+            "host": ["localhost"],
+            "port": "5000",
+            "path": ["api", "v1", "books"],
+            "query": [
+              { "key": "strategy", "value": "offset" },
+              { "key": "genre", "value": "science" }
+            ]
+          }
+        }
+      }
+    ]
+  }
