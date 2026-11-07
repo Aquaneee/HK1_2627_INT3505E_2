@@ -1,0 +1,31 @@
+# Virtual Environment
+.venv/
+venv/
+ENV/
+env/
+
+# Python bytecode & cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Testing & Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+*.cover
+
+# Database & Storage
+*.sqlite
+*.db
+*.sqlite3
+
+# Environment Variables & IDE
+.env
+.idea/
+.vscode/
+*.swp
+
+# Docker logs
+*.log
