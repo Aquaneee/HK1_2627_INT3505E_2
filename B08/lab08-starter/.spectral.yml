@@ -1,0 +1,20 @@
+﻿extends:
+  - spectral:oas
+
+rules:
+  response-200-object-schema-has-properties:
+    description: A 200 response object must have properties.
+    message: "A 200 response object schema must have at least one property."
+    severity: error
+    given: "$.paths[*][*].responses['200'].content['application/json'].schema[?(@.type == 'object')]"
+    then:
+      function: schema
+      functionOptions:
+        schema:
+          type: object
+          required:
+            - properties
+          properties:
+            properties:
+              type: object
+              minProperties: 1
