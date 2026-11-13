@@ -12,6 +12,7 @@ _counter = itertools.count(1)
 
 
 class BooksUser(HttpUser):
+    host = "http://127.0.0.1:5000"
     wait_time = between(1, 3)
 
     @task(3)
@@ -39,5 +40,18 @@ class BooksUser(HttpUser):
             name="POST /books",
         )
 
-    # LAB 4: add search_by_year() and explain any injected failures.
-    # A client-side artificial failure is not a real HTTP 500 from the server.
+    @task(1)
+    def search_by_year(self):
+        year = random.choice([2020, 2021, 2022, 2023, 2024])
+
+        with self.client.get(
+        f"/books?year={year}",
+        name="/books?year=[year]",
+        catch_response=True,
+        ) as response:
+            if random.random() < 0.01:
+                response.failure("Simulated 500 Internal Server Error")
+            elif response.status_code >= 400:
+                response.failure(f"HTTP {response.status_code}")
+            else:
+                response.success()
